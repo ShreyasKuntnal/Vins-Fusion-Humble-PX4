@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+    <let name="rviz_config" value="$(find-pkg-share vins)/config/vins_rviz_config.rviz"/>
+    <node name="rviz2" pkg="rviz2" exec="rviz2" args="-d $(var rviz_config)"/>
+
+    <let name="vins_config" value="$(find-pkg-share vins)/config/test/stereo_config.yaml"  />
+    <node name="vio" pkg="vins" exec="vins_node" args=" $(var vins_config)"/> 
+
+</launch>
