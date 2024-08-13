@@ -1,5 +1,8 @@
 # VINS-Fusion
 
+# Cloned from https://github.com/zinuok/VINS-Fusion-ROS2 But Implemented changes done in https://github.com/bonabai/VINS-Fusion-ROS2 to support ROS2 Humble
+## vins_tranfer.py was created to publish data from vins to PX4 firmware 
+
 ## ROS2 version of VINS-Fusion.
 
 ### Notices
