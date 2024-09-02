@@ -2,13 +2,13 @@
 
 #common parameters
 #support: 1 imu 1 cam; 1 imu 2 cam: 2 cam; 
-imu: 0         
+imu: 1         
 num_of_cam: 2  
 
-imu_topic: "/fmu/out/vehicle_attitude"
+imu_topic: "/vio_transform/imu"
 image0_topic: "/camera/camera/infra1/image_rect_raw"
 image1_topic: "/camera/camera/infra2/image_rect_raw"
-output_path: "/home/dji/output/"
+output_path: "/home/vt008/Documents/Output"
 
 cam0_calib: "left.yaml"
 cam1_calib: "right.yaml"

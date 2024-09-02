@@ -90,6 +90,17 @@ install(PROGRAMS
   DESTINATION lib/${PROJECT_NAME}
 )
 
+install(PROGRAMS
+  scripts/process.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(PROGRAMS
+  scripts/imu_data.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+
 # Install nodes
 install(
   TARGETS vins_node
