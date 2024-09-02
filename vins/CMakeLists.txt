@@ -89,6 +89,10 @@ install(PROGRAMS
   scripts/vins_transfer.py
   DESTINATION lib/${PROJECT_NAME}
 )
+install(PROGRAMS
+  scripts/process.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 # Install nodes
 install(

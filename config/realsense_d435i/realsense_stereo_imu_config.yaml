@@ -2,13 +2,13 @@
 
 #common parameters
 #support: 1 imu 1 cam; 1 imu 2 cam: 2 cam; 
-imu: 0         
+imu: 1         
 num_of_cam: 2  
 
-imu_topic: "/fmu/out/vehicle_attitude"
+imu_topic: "/vio_transform/imu"
 image0_topic: "/camera/camera/infra1/image_rect_raw"
 image1_topic: "/camera/camera/infra2/image_rect_raw"
-output_path: "/home/dji/output/"
+output_path: "/home/nvidia/Documents/output/"
 
 cam0_calib: "left.yaml"
 cam1_calib: "right.yaml"
@@ -22,36 +22,32 @@ use_gpu_ceres   : 1
    
 
 # Extrinsic parameter between IMU and Camera.
-estimate_extrinsic: 1   # 0  Have an accurate extrinsic parameters. We will trust the following imu^R_cam, imu^T_cam, don't change it.
+estimate_extrinsic: 0   # 0  Have an accurate extrinsic parameters. We will trust the following imu^R_cam, imu^T_cam, don't change it.
                         # 1  Have an initial guess about extrinsic parameters. We will optimize around your initial guess.
 
 body_T_cam0: !!opencv-matrix
    rows: 4
    cols: 4
    dt: d
-   data: [ -5.7586305857286746e-03, -4.0463318787729019e-03,
-       9.9997523237933461e-01, 2.0329267950355900e-02,
-       -9.9998287214160420e-01, -1.0224590553211677e-03,
-       -5.7628118925283633e-03, 7.9325209639615653e-03,
-       1.0457519809151661e-03, -9.9999129084997906e-01,
-       -4.0403746097850135e-03, 2.8559824645148020e-03, 0., 0., 0., 1. ]
+   data: [-0.00375566314579545, 0.007625903877490696, 0.9999638696394905, 0.11879512321292314,
+          -0.9999867008399009, 0.0035058450914083944, -0.0037824850988566285, 0.01672262684684006,
+          -0.0035345632917433466, -0.9999647766997815, 0.0076126356861695435, -0.025706761368389112,
+          0.0, 0.0, 0.0, 1.0]
 
 body_T_cam1: !!opencv-matrix
    rows: 4
    cols: 4
    dt: d
-   data: [ -1.0021770212322867e-03, 3.6313480322730518e-04,
-       9.9999943188700535e-01, 1.5285779565991807e-02,
-       -9.9999216342926500e-01, -3.8303422615924010e-03,
-       -1.0007788055728661e-03, -5.2435791444330505e-02,
-       3.8299766679101843e-03, -9.9999259827824449e-01,
-       3.6697063849344680e-04, 8.6931302450199057e-03, 0., 0., 0., 1. ]
+   data: [-0.003688881387314186, 0.00769033983387191, 0.9999636247520955, 0.1186818718096688,
+          -0.9999870407570168, 0.0034801795878508894, -0.0037157325066084755, -0.03336784652177607,
+          -0.0035086282411632584, -0.9999643728769918, 0.007677402203183352, -0.025935436406742982,
+          0.0, 0.0, 0.0, 1.0]
 
 #Multiple thread support
-multiple_thread: 1
+multiple_thread: 8
 
 #feature traker paprameters
-max_cnt: 150            # max feature number in feature tracking
+max_cnt: 50            # max feature number in feature tracking
 min_dist: 30            # min distance between two features 
 freq: 10                # frequence (Hz) of publish tracking result. At least 10Hz for good estimation. If set 0, the frequence will be same as raw image 
 F_threshold: 1.0        # ransac threshold (pixel)
@@ -59,7 +55,7 @@ show_track: 1           # publish tracking image as topic
 flow_back: 1            # perform forward and backward optical flow to improve feature tracking accuracy
 
 #optimization parameters
-max_solver_time: 0.04  # max solver itration time (ms), to guarantee real time
+max_solver_time: 0.025  # max solver itration time (ms), to guarantee real time
 max_num_iterations: 8   # max solver itrations, to guarantee real time
 keyframe_parallax: 10.0 # keyframe selection threshold (pixel)
 
@@ -76,5 +72,5 @@ td: 0.00                             # initial value of time offset. unit: s. re
 
 #loop closure parameters
 load_previous_pose_graph: 0        # load and reuse previous pose graph; load from 'pose_graph_save_path'
-pose_graph_save_path: "/home/dji/output/pose_graph/" # save and load path
+pose_graph_save_path: "/home/nvidia/Documents/output/" # save and load path
 save_image: 0                   # save image in pose graph for visualization prupose; you can close this function by setting 0 

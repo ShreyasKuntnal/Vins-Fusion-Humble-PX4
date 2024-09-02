@@ -1,20 +1,26 @@
 from launch import LaunchDescription
+from ament_index_python.packages import get_package_share_directory
 from launch_ros.actions import Node
+import os
 
 def generate_launch_description():
     return LaunchDescription([
+        # Node(
+        #     package='realsense2_camera',
+        #     executable='rs_launch.py',
+        #     name='realsense_camera',
+        #     output='screen'
+        # ),
         Node(
             package='vins',
-            namespace='vins_node',
-            executable='vins_node',
-            name='vins_node',
-            arguments=['--config_file', '/home/vt008/vins_fusion_ros2_edited/src/VINS-Fusion-ROS2/config/realsense_d435i/realsense_stereo_imu_config.yaml']
+            namespace='process',
+            executable='process.py',
+            name='process'
         ),
         Node(
             package='vins',
             namespace='vins_transfer',
             executable='vins_transfer.py',
-            name='vins_transfer',
-            output='screen'
+            name='vins_transfer'
         )
     ])
