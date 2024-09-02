@@ -8,6 +8,7 @@
  *******************************************************/
 
 #include "parameters.h"
+#include <rclcpp/rclcpp.hpp> // Ensure this is included for ROS2 logging
 
 double INIT_DEPTH;
 double MIN_PARALLAX;
@@ -81,7 +82,7 @@ void readParameters(std::string config_file)
     FILE *fh = fopen(config_file.c_str(),"r");
     if(fh == NULL){
         ROS_WARN("config_file dosen't exist; wrong config_file path");
-        ROS_BREAK();
+        rclcpp::shutdown(); // Replace ROS_BREAK with rclcpp::shutdown
         return;          
     }
     fclose(fh);
@@ -188,7 +189,6 @@ void readParameters(std::string config_file)
         std::string cam1Calib;
         fsSettings["cam1_calib"] >> cam1Calib;
         std::string cam1Path = configPath + "/" + cam1Calib; 
-        //printf("%s cam1 path\n", cam1Path.c_str() );
         CAM_NAMES.push_back(cam1Path);
         
         cv::Mat cv_T;
@@ -197,7 +197,7 @@ void readParameters(std::string config_file)
         cv::cv2eigen(cv_T, T);
         RIC.push_back(T.block<3, 3>(0, 0));
         TIC.push_back(T.block<3, 1>(0, 3));
-        PUB_RECTIFY = fsSettings["publish_rectify"].as<int>();
+        PUB_RECTIFY = (int)fsSettings["publish_rectify"]; // Corrected usage
     }
 
     INIT_DEPTH = 5.0;

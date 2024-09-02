@@ -165,7 +165,8 @@ void GPS_callback(const sensor_msgs::msg::NavSatFix::SharedPtr GPS_msg)
     // m_buf.lock();
     // gpsQueue.push(GPS_msg);
     // m_buf.unlock();
-    double t = GPS_msg->header.stamp.toSec();
+    rclcpp::Time timestamp(GPS_msg->header.stamp);
+    double t = timestamp.seconds();
     //printf("receive GPS with timestamp %f\n", GPS_msg->header.stamp.toSec());
     double latitude = GPS_msg->latitude;
     double longitude = GPS_msg->longitude;
