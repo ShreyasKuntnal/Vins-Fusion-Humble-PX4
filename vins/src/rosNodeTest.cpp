@@ -87,12 +87,12 @@ void sync_process()
                 double time1 = img1_buf.front()->header.stamp.sec + img1_buf.front()->header.stamp.nanosec * (1e-9);
 
                 // 0.003s sync tolerance
-                if(time0 < time1 - 0.003)
+                if(time0 < time1 )
                 {
                     img0_buf.pop();
                     printf("throw img0\n");
                 }
-                else if(time0 > time1 + 0.003)
+                else if(time0 > time1)
                 {
                     img1_buf.pop();
                     printf("throw img1\n");
@@ -201,41 +201,47 @@ void restart_callback(const std_msgs::msg::Bool::SharedPtr restart_msg)
     if (restart_msg->data == true)
     {
         ROS_WARN("restart the estimator!");
+        m_buf.lock();
+        while(!feature_buf.empty())
+            feature_buf.pop();
+        while(!imu_buf.empty())
+            imu_buf.pop();
+        m_buf.unlock();
         estimator.clearState();
         estimator.setParameter();
     }
     return;
 }
 
-void imu_switch_callback(const std_msgs::msg::Bool::SharedPtr switch_msg)
-{
-    if (switch_msg->data == true)
-    {
-        //ROS_WARN("use IMU!");
-        estimator.changeSensorType(1, STEREO);
-    }
-    else
-    {
-        //ROS_WARN("disable IMU!");
-        estimator.changeSensorType(0, STEREO);
-    }
-    return;
-}
+// void imu_switch_callback(const std_msgs::msg::Bool::SharedPtr switch_msg)
+// {
+//     if (switch_msg->data == true)
+//     {
+//         //ROS_WARN("use IMU!");
+//         estimator.changeSensorType(1, STEREO);
+//     }
+//     else
+//     {
+//         //ROS_WARN("disable IMU!");
+//         estimator.changeSensorType(0, STEREO);
+//     }
+//     return;
+// }
 
-void cam_switch_callback(const std_msgs::msg::Bool::SharedPtr switch_msg)
-{
-    if (switch_msg->data == true)
-    {
-        //ROS_WARN("use stereo!");
-        estimator.changeSensorType(USE_IMU, 1);
-    }
-    else
-    {
-        //ROS_WARN("use mono camera (left)!");
-        estimator.changeSensorType(USE_IMU, 0);
-    }
-    return;
-}
+// void cam_switch_callback(const std_msgs::msg::Bool::SharedPtr switch_msg)
+// {
+//     if (switch_msg->data == true)
+//     {
+//         //ROS_WARN("use stereo!");
+//         estimator.changeSensorType(USE_IMU, 1);
+//     }
+//     else
+//     {
+//         //ROS_WARN("use mono camera (left)!");
+//         estimator.changeSensorType(USE_IMU, 0);
+//     }
+//     return;
+// }
 
 int main(int argc, char **argv)
 {

@@ -18,6 +18,9 @@ rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr pub_key_poses;
 rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pub_camera_pose;
 rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr pub_camera_pose_visual;
 nav_msgs::msg::Path path;
+rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pub_camera_pose_right;
+rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pub_rectify_pose_left;
+rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pub_rectify_pose_right;
 
 rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pub_keyframe_pose;
 rclcpp::Publisher<sensor_msgs::msg::PointCloud>::SharedPtr pub_keyframe_point;
@@ -45,6 +48,9 @@ void registerPub(rclcpp::Node::SharedPtr n)
     pub_keyframe_point = n->create_publisher<sensor_msgs::msg::PointCloud>("keyframe_point", 1000);
     pub_extrinsic = n->create_publisher<nav_msgs::msg::Odometry>("extrinsic", 1000);
     pub_image_track = n->create_publisher<sensor_msgs::msg::Image>("image_track", 1000);
+    pub_camera_pose_right = n->create_publisher<nav_msgs::msg::Odometry>("camera_pose_right", 1000);
+    pub_rectify_pose_left = n->create_publisher<geometry_msgs::msg::PoseStamped>("rectify_pose_left", 1000);
+    pub_rectify_pose_right = n->create_publisher<geometry_msgs::msg::PoseStamped>("rectify_pose_right", 1000);
 
     cameraposevisual.setScale(0.1);
     cameraposevisual.setLineWidth(0.01);
@@ -241,7 +247,54 @@ void pubCameraPose(const Estimator &estimator, const std_msgs::msg::Header &head
         odometry.pose.pose.orientation.y = R.y();
         odometry.pose.pose.orientation.z = R.z();
         odometry.pose.pose.orientation.w = R.w();
+        if(STEREO)
+        {
+            Vector3d P_r = estimator.Ps[i] + estimator.Rs[i] * estimator.tic[1];
+            Quaterniond R_r = Quaterniond(estimator.Rs[i] * estimator.ric[1]);
 
+            nav_msgs::msg::Odometry odometry_r;
+            odometry_r.header = header;
+            odometry_r.header.frame_id = "world";
+            odometry_r.pose.pose.position.x = P_r.x();
+            odometry_r.pose.pose.position.y = P_r.y();
+            odometry_r.pose.pose.position.z = P_r.z();
+            odometry_r.pose.pose.orientation.x = R_r.x();
+            odometry_r.pose.pose.orientation.y = R_r.y();
+            odometry_r.pose.pose.orientation.z = R_r.z();
+            odometry_r.pose.pose.orientation.w = R_r.w();
+            pub_camera_pose_right->publish(odometry_r);
+            if(PUB_RECTIFY)
+            {
+                Vector3d R_P_l = P;
+                Vector3d R_P_r = P_r;
+                Quaterniond R_R_l = Quaterniond(estimator.Rs[i] * estimator.ric[0] * rectify_R_left.inverse());
+                Quaterniond R_R_r = Quaterniond(estimator.Rs[i] * estimator.ric[1] * rectify_R_right.inverse());
+                geometry_msgs::msg::PoseStamped R_pose_l, R_pose_r;
+                R_pose_l.header = header;
+                R_pose_r.header = header;
+                R_pose_l.header.frame_id = "world";
+                R_pose_r.header.frame_id = "world";
+                R_pose_l.pose.position.x = R_P_l.x();
+                R_pose_l.pose.position.y = R_P_l.y();
+                R_pose_l.pose.position.z = R_P_l.z();
+                R_pose_l.pose.orientation.x = R_R_l.x();
+                R_pose_l.pose.orientation.y = R_R_l.y();
+                R_pose_l.pose.orientation.z = R_R_l.z();
+                R_pose_l.pose.orientation.w = R_R_l.w();
+
+                R_pose_r.pose.position.x = R_P_r.x();
+                R_pose_r.pose.position.y = R_P_r.y();
+                R_pose_r.pose.position.z = R_P_r.z();
+                R_pose_r.pose.orientation.x = R_R_r.x();
+                R_pose_r.pose.orientation.y = R_R_r.y();
+                R_pose_r.pose.orientation.z = R_R_r.z();
+                R_pose_r.pose.orientation.w = R_R_r.w();
+
+                pub_rectify_pose_left->publish(R_pose_l);
+                pub_rectify_pose_right->publish(R_pose_r);
+
+            }
+        }
         pub_camera_pose->publish(odometry);
 
         cameraposevisual.reset();

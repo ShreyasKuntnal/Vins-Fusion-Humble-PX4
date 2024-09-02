@@ -36,6 +36,9 @@ extern int ESTIMATE_EXTRINSIC;
 extern int USE_GPU;
 extern int USE_GPU_ACC_FLOW;
 extern int USE_GPU_CERES;
+extern int PUB_RECTIFY;
+extern Eigen::Matrix3d rectify_R_left;
+extern Eigen::Matrix3d rectify_R_right;
 
 extern double ACC_N, ACC_W;
 extern double GYR_N, GYR_W;
@@ -71,6 +74,8 @@ extern int MIN_DIST;
 extern double F_THRESHOLD;
 extern int SHOW_TRACK;
 extern int FLOW_BACK;
+extern int LK_SIZE;
+extern int LK_N;
 
 void readParameters(std::string config_file);
 

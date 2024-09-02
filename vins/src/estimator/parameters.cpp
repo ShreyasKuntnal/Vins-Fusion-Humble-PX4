@@ -19,8 +19,8 @@ std::vector<Eigen::Vector3d> TIC;
 
 Eigen::Vector3d G{0.0, 0.0, 9.8};
 
-int USE_GPU;
-int USE_GPU_ACC_FLOW;
+// int USE_GPU;
+// int USE_GPU_ACC_FLOW;
 int USE_GPU_CERES;
 
 double BIAS_ACC_THRESHOLD;
@@ -40,6 +40,12 @@ int NUM_OF_CAM;
 int STEREO;
 int USE_IMU;
 int MULTIPLE_THREAD;
+int USE_GPU;
+int USE_GPU_ACC_FLOW;
+int PUB_RECTIFY;
+Eigen::Matrix3d rectify_R_left;
+Eigen::Matrix3d rectify_R_right;
+
 map<int, Eigen::Vector3d> pts_gt;
 std::string IMAGE0_TOPIC, IMAGE1_TOPIC;
 std::string FISHEYE_MASK;
@@ -49,6 +55,8 @@ int MIN_DIST;
 double F_THRESHOLD;
 int SHOW_TRACK;
 int FLOW_BACK;
+int LK_SIZE;
+int LK_N;
 
 
 template <typename T>
@@ -73,7 +81,7 @@ void readParameters(std::string config_file)
     FILE *fh = fopen(config_file.c_str(),"r");
     if(fh == NULL){
         ROS_WARN("config_file dosen't exist; wrong config_file path");
-        // ROS_BREAK();
+        ROS_BREAK();
         return;          
     }
     fclose(fh);
@@ -91,6 +99,14 @@ void readParameters(std::string config_file)
     F_THRESHOLD = fsSettings["F_threshold"];
     SHOW_TRACK = fsSettings["show_track"];
     FLOW_BACK = fsSettings["flow_back"];
+    if (fsSettings["lk_size"].empty())
+        LK_SIZE = 21;
+    else
+        LK_SIZE = fsSettings["lk_size"];
+    if (fsSettings["lk_n"].empty())
+        LK_N = 3;
+    else
+        LK_N = fsSettings["lk_n"];
 
     MULTIPLE_THREAD = fsSettings["multiple_thread"];
 
@@ -181,6 +197,7 @@ void readParameters(std::string config_file)
         cv::cv2eigen(cv_T, T);
         RIC.push_back(T.block<3, 3>(0, 0));
         TIC.push_back(T.block<3, 1>(0, 3));
+        PUB_RECTIFY = fsSettings["publish_rectify"].as<int>();
     }
 
     INIT_DEPTH = 5.0;
@@ -203,6 +220,16 @@ void readParameters(std::string config_file)
         ESTIMATE_EXTRINSIC = 0;
         ESTIMATE_TD = 0;
         printf("no imu, fix extrinsic param; no time offset calibration\n");
+    }
+    if(PUB_RECTIFY)
+    {
+        cv::Mat rectify_left;
+        cv::Mat rectify_right;
+        fsSettings["cam0_rectify"] >> rectify_left;
+        fsSettings["cam1_rectify"] >> rectify_right;
+        cv::cv2eigen(rectify_left, rectify_R_left);
+        cv::cv2eigen(rectify_right, rectify_R_right);
+
     }
 
     fsSettings.release();

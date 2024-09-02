@@ -21,6 +21,9 @@
 #include <csignal>
 #include <opencv2/opencv.hpp>
 #include <eigen3/Eigen/Dense>
+#include <opencv2/cudaoptflow.hpp>
+#include <opencv2/cudaimgproc.hpp>
+#include <opencv2/cudaarithm.hpp>
 
 #ifdef GPU_MODE
 #include <opencv2/cudaoptflow.hpp>
@@ -81,6 +84,7 @@ public:
     cv::Mat fisheye_mask;
     cv::Mat prev_img, cur_img;
     vector<cv::Point2f> n_pts;
+    int sum_n;
     vector<cv::Point2f> predict_pts;
     vector<cv::Point2f> predict_pts_debug;
     vector<cv::Point2f> prev_pts, cur_pts, cur_right_pts;
@@ -97,4 +101,7 @@ public:
     bool stereo_cam;
     int n_id;
     bool hasPrediction;
+    cv::cuda::GpuMat prev_gpu_img;
+    cv::Ptr<cv::cuda::SparsePyrLKOpticalFlow> d_pyrLK_sparse;
+    cv::Ptr<cv::cuda::SparsePyrLKOpticalFlow> d_pyrLK_sparse_prediction;
 };

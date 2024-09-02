@@ -20,9 +20,9 @@
 #include <stdio.h>
 #include <visualization_msgs/msg/marker.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
-#include <fstream>
-#include <queue>
-#include <mutex>
+// #include <fstream>
+// #include <queue>
+// #include <mutex>
 #include <functional>
 
 GlobalOptimization globalEstimator;
@@ -30,9 +30,9 @@ rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pub_global_odometry;
 rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pub_global_path;
 rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr pub_car;
 nav_msgs::msg::Path *global_path;
-double last_vio_t = -1;
-std::queue<sensor_msgs::msg::NavSatFix::SharedPtr> gpsQueue;
-std::mutex m_buf;
+// double last_vio_t = -1;
+// std::queue<sensor_msgs::msg::NavSatFix::SharedPtr> gpsQueue;
+// std::mutex m_buf;
 
 void publish_car_model(double t, Eigen::Vector3d t_w_car, Eigen::Quaterniond q_w_car)
 {
@@ -83,7 +83,7 @@ void vio_callback(const nav_msgs::msg::Odometry::SharedPtr pose_msg)
 {
     //printf("vio_callback! \n");
     double t = pose_msg->header.stamp.sec;
-    last_vio_t = t;
+    // last_vio_t = t;
     Eigen::Vector3d vio_t(pose_msg->pose.pose.position.x, pose_msg->pose.pose.position.y, pose_msg->pose.pose.position.z);
     Eigen::Quaterniond vio_q;
     vio_q.w() = pose_msg->pose.pose.orientation.w;
@@ -93,35 +93,35 @@ void vio_callback(const nav_msgs::msg::Odometry::SharedPtr pose_msg)
     globalEstimator.inputOdom(t, vio_t, vio_q);
 
 
-    m_buf.lock();
-    while(!gpsQueue.empty())
-    {
-        sensor_msgs::msg::NavSatFix::ConstPtr GPS_msg = gpsQueue.front();
-        double gps_t = GPS_msg->header.stamp.sec;
-        printf("vio t: %f, gps t: %f \n", t, gps_t);
-        // 10ms sync tolerance
-        if(gps_t >= t - 0.01 && gps_t <= t + 0.01)
-        {
-            //printf("receive GPS with timestamp %f\n", GPS_msg->header.stamp.sec);
-            double latitude = GPS_msg->latitude;
-            double longitude = GPS_msg->longitude;
-            double altitude = GPS_msg->altitude;
-            //int numSats = GPS_msg->status.service;
-            double pos_accuracy = GPS_msg->position_covariance[0];
-            if(pos_accuracy <= 0)
-                pos_accuracy = 1;
-            //printf("receive covariance %lf \n", pos_accuracy);
-            //if(GPS_msg->status.status > 8)
-                globalEstimator.inputGPS(t, latitude, longitude, altitude, pos_accuracy);
-            gpsQueue.pop();
-            break;
-        }
-        else if(gps_t < t - 0.01)
-            gpsQueue.pop();
-        else if(gps_t > t + 0.01)
-            break;
-    }
-    m_buf.unlock();
+    // m_buf.lock();
+    // while(!gpsQueue.empty())
+    // {
+    //     sensor_msgs::msg::NavSatFix::ConstPtr GPS_msg = gpsQueue.front();
+    //     double gps_t = GPS_msg->header.stamp.sec;
+    //     printf("vio t: %f, gps t: %f \n", t, gps_t);
+    //     // 10ms sync tolerance
+    //     if(gps_t >= t - 0.01 && gps_t <= t + 0.01)
+    //     {
+    //         //printf("receive GPS with timestamp %f\n", GPS_msg->header.stamp.sec);
+    //         double latitude = GPS_msg->latitude;
+    //         double longitude = GPS_msg->longitude;
+    //         double altitude = GPS_msg->altitude;
+    //         //int numSats = GPS_msg->status.service;
+    //         double pos_accuracy = GPS_msg->position_covariance[0];
+    //         if(pos_accuracy <= 0)
+    //             pos_accuracy = 1;
+    //         //printf("receive covariance %lf \n", pos_accuracy);
+    //         //if(GPS_msg->status.status > 8)
+    //             globalEstimator.inputGPS(t, latitude, longitude, altitude, pos_accuracy);
+    //         gpsQueue.pop();
+    //         break;
+    //     }
+    //     else if(gps_t < t - 0.01)
+    //         gpsQueue.pop();
+    //     else if(gps_t > t + 0.01)
+    //         break;
+    // }
+    // m_buf.unlock();
 
     Eigen::Vector3d global_t;
     Eigen:: Quaterniond global_q;
@@ -143,28 +143,37 @@ void vio_callback(const nav_msgs::msg::Odometry::SharedPtr pose_msg)
     publish_car_model(t, global_t, global_q);
 
 
-    // write result to file
-    std::ofstream foutC("/home/tony-ws1/output/vio_global.csv", ios::app);
-    foutC.setf(ios::fixed, ios::floatfield);
-    foutC.precision(0);
-    foutC << pose_msg->header.stamp.sec * 1e9 << ",";
-    foutC.precision(5);
-    foutC << global_t.x() << ","
-            << global_t.y() << ","
-            << global_t.z() << ","
-            << global_q.w() << ","
-            << global_q.x() << ","
-            << global_q.y() << ","
-            << global_q.z() << endl;
-    foutC.close();
+    // // write result to file
+    // std::ofstream foutC("/home/tony-ws1/output/vio_global.csv", ios::app);
+    // foutC.setf(ios::fixed, ios::floatfield);
+    // foutC.precision(0);
+    // foutC << pose_msg->header.stamp.sec * 1e9 << ",";
+    // foutC.precision(5);
+    // foutC << global_t.x() << ","
+    //         << global_t.y() << ","
+    //         << global_t.z() << ","
+    //         << global_q.w() << ","
+    //         << global_q.x() << ","
+    //         << global_q.y() << ","
+    //         << global_q.z() << endl;
+    // foutC.close();
 }
 
 
 void GPS_callback(const sensor_msgs::msg::NavSatFix::SharedPtr GPS_msg)
 {
-    m_buf.lock();
-    gpsQueue.push(GPS_msg);
-    m_buf.unlock();
+    // m_buf.lock();
+    // gpsQueue.push(GPS_msg);
+    // m_buf.unlock();
+    double t = GPS_msg->header.stamp.toSec();
+    //printf("receive GPS with timestamp %f\n", GPS_msg->header.stamp.toSec());
+    double latitude = GPS_msg->latitude;
+    double longitude = GPS_msg->longitude;
+    double altitude = GPS_msg->altitude;
+    //int numSats = GPS_msg->status.service;
+    double pos_accuracy = GPS_msg->position_covariance[0];
+    //printf("receive covariance %lf \n", pos_accuracy);
+    globalEstimator.inputGPS(t, latitude, longitude, altitude, pos_accuracy);
 }
 
 
